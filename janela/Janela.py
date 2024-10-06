@@ -3,11 +3,16 @@ import re
 from Gemini.gemini_ia import IA
 import sys
 import os
+import keyboard
+import speech_recognition as sr
+import threading
+from tkinter import messagebox
 
 # Nao sei porque, nem como, mas o GPT diz e funciona emtao PRONTO!!! nao mexa!!!
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from personalidade import Personalidade
+from Voz.voz import on_shift_c_pressed
 
 
 # Definindo comandos disponíveis
@@ -110,7 +115,6 @@ class Janela:
         if index < len(texto):
             self.chat_log.insert(tk.END, texto[index:])
 
-    # Cria os widgets da interface gráfica
     def create_widgets(self):
         self.chat_log = tk.Text(self.root, state='disabled', width=50, height=20)
         self.scrollbar = tk.Scrollbar(self.root, command=self.chat_log.yview)
@@ -133,6 +137,52 @@ class Janela:
         personalidades = ["objetiva", "informativa", "conversacional"]
         self.personalidade_menu = tk.OptionMenu(self.root, self.personalidade_atual, *personalidades)
         self.personalidade_menu.pack()
+
+        # Botão de voz
+        self.voice_button = tk.Button(self.root, text="Voz", command=self.on_voice_button_pressed)
+        self.voice_button.pack()
+
+        # Adiciona hotkey para Shift+C
+        keyboard.add_hotkey('shift+c', self.on_shift_c_pressed)
+
+    def on_voice_button_pressed(self):
+        text = self.recognize_voice()
+        if text:
+            self.entry_box.delete(0, tk.END)
+            self.entry_box.insert(tk.END, text)
+            self.enviar_mensagem()
+
+    def on_shift_c_pressed(self):
+        text = self.recognize_voice()
+        if text:
+            self.entry_box.delete(0, tk.END)
+            self.entry_box.insert(tk.END, text)
+            self.enviar_mensagem()
+
+    def on_voice_button_pressed(self):
+        threading.Thread(target=self.recognize_voice).start()
+        #cria um label para mostrar o texto reconhecido
+        label = tk.Label(self.root, text="Pode falar")
+        label.pack()
+
+    def on_shift_c_pressed(self):
+        threading.Thread(target=self.recognize_voice).start()
+        label = tk.Label(self.root, text="Pode falar")
+        label.pack()
+
+    def recognize_voice(self):
+        recognizer = sr.Recognizer()
+        with sr.Microphone() as source:
+            audio = recognizer.listen(source)
+            try:
+                text = recognizer.recognize_google(audio, language='pt-BR')
+                self.entry_box.delete(0, tk.END)
+                self.entry_box.insert(tk.END, text)
+                self.enviar_mensagem()
+            except sr.UnknownValueError:
+                messagebox.showinfo("Erro", "Não entendi o que você disse.")
+            except sr.RequestError as e:
+                messagebox.showinfo("Erro", "Erro ao se comunicar com o Google Speech Recognition: {0}".format(e))
 
     # Método que atualiza a personalidade quando a seleção no menu muda
     def atualizar_personalidade(self, *args):

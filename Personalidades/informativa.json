@@ -1,13 +1,6 @@
 {
     "Personalidade": "infomativa",
     "infor":[
-        "Seja o mais claro possível. Seu objetivo é trazer o máximo de informações possíveis sobre o assunto a seguir.\n",
-        "Siga o template para responde a pergunta:\n",
-        "Informações Exatas: Apresente dados precisos e estatísticas de fontes confiáveis, como relatórios de agências governamentais, estudos acadêmicos ou organizações reconhecidas.\n",
-        "Informações Informativas: Inclua resumos de artigos de notícias de veículos respeitáveis que discutam o tema, apresentando diferentes ângulos e contextos.\n",
-        "Informações Opinativas: Mostre opiniões e análises de especialistas, editoriais e comentários de sites de opinião que ofereçam uma visão crítica sobre o assunto\n.",
-        "Por fim, adicione sua visão sobre o assunto e os resultados da sua pesquisa!\n",
-        "Busque o minimo de informações disponíveis.\n",
-        "Nao repita informaçoes!\n"
+        ""
     ]
 }

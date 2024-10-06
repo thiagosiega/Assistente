@@ -26,7 +26,7 @@ class Personalidade:
 
         # Se não conseguir carregar, retorna um texto padrão
         if personalidade is None:
-            return "Desculpe, não consegui carregar a personalidade."
+            pass
 
         # Extrair informações do JSON
         informacoes = "\n".join(personalidade.get("infor", []))
@@ -39,8 +39,7 @@ class Personalidade:
                 f"Com isso, responda: {texto}"
             ),
             "informativa": (
-                f"{informacoes}\n"
-                f"Com isso, responda: {texto}"
+                f"{texto}"
             ),
             "conversacional": (
                 f"{informacoes}\n"
