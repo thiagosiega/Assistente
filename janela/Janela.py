@@ -1,103 +1,100 @@
 import tkinter as tk
 import re
 from Gemini.gemini_ia import IA
+import sys
+import os
 
-comandos_disponiveis = ["janela", "olamundo"]
+# Nao sei porque, nem como, mas o GPT diz e funciona emtao PRONTO!!! nao mexa!!!
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from personalidade import Personalidade
+
+
+# Definindo comandos disponíveis
+COMANDOS_DISPONIVEIS = ["janela", "olamundo"]
 
 class Janela:
     def __init__(self):
+        # Configuração inicial da janela principal
         self.root = tk.Tk()
         self.root.title("Janela de Bate Papo")
-        # Inicializa personalidade padrão
-        self.personalidade_atual = tk.StringVar(self.root)
-        self.personalidade_atual.set("objetiva")  # Valor padrão inicial
+
+        # Define a personalidade padrão
+        personalidade_atual = "objetiva"  # ou qualquer valor padrão desejado
+
+        # Inicializa a personalidade padrão
+        self.personalidade = Personalidade(personalidade_atual)
+        self.personalidade_atual = tk.StringVar(value=personalidade_atual)
+
+        # Cria a interface
         self.create_widgets()
+
+        # Inicializa a IA Gemini
         self.gemini = IA()
-        # Definindo as tags de estilo para o widget Text
+
+        # Definindo estilos de tags para o Text widget
         self.chat_log.tag_config('negrito', font=('Helvetica', 12, 'bold'))
         self.chat_log.tag_config('italico', font=('Helvetica', 12, 'italic'))
-        
-        # Inicializa personalidade padrão
-        self.personalidade_atual = tk.StringVar(self.root)
-        self.personalidade_atual.set("objetiva")  # Valor padrão inicial
 
+        # Atualiza a personalidade ao mudar o menu
+        self.personalidade_atual.trace("w", self.atualizar_personalidade)
+
+    # Método para criar uma nova janela (comando janela)
     def janela(self):
-        janela_ia = tk.Tk()
+        janela_ia = tk.Toplevel(self.root)
         janela_ia.title("Janela criada pela IA")
         janela_ia.geometry("300x300")
-        janela_ia.mainloop()
 
+    # Método olamundo (comando olamundo)
     def olamundo(self):
         print("Olá Mundo")
 
+    # Define a resposta da IA baseada na personalidade selecionada
     def definir_personalidade(self, texto):
-        personalidades = {
-            "objetiva": [
-                "Seja direto e objetivo.",
-                "Respostas curtas e diretas.",
-                "Voce tem comandos disponíveis, todos seguem o padrão antes e depois posuem '$&'\nExemplo:'$&janela$&'.",
-                "Todos os comando sao executados na maquina do user.",
-                f"Comandos disponíveis: {comandos_disponiveis}",
-                f"Com isso responda: {texto}"
-            ],
-            "informativa": [
-                "Busque o maximo de informaçoes disponiveis independente da fonte.",
-                "O obijetivo é sempre buscar mais informaçoes.",
-                "Qual quer resultado vago nao e aceitavel.",
-                f"Com isso responda: {texto}"
-            ],
-            "conversacional": [
-                "Você é a Yuno Gasai.",
-                "Aja como se estivesse conversando com o seu amado.",
-                "Sempre mantenha a conversa ativa.",
-                f"Com isso responda: {texto}"
-            ]
-        }
-        return personalidades[self.personalidade_atual.get()]
+        return self.personalidade.definir_personalidade(texto)
 
-    def filtros(self, texto):
-        # Expressão regular para identificar o padrão "* **" que vira "=> **negrito**"
-        topico_negrito_pat = re.compile(r'\* \*\*(.*?)\*\*')  # Identifica * **texto**
-        # Expressão regular para identificar negrito **texto**
-        negrito_pat = re.compile(r'\*\*(.*?)\*\*')
-        # Expressão regular para identificar itálico *texto*
-        italico_pat = re.compile(r'\*(.*?)\*')
-        # Comandos a serem executados
-        comando_pat = re.compile(r'\$&(\w+)&\$')  
+    # Método que aplica filtros de formatação e executa comandos
+    def aplicar_filtros(self, texto):
+        # Expressões regulares para formatação e comandos
+        topico_negrito_pat = re.compile(r'\* \*\*(.*?)\*\*')  # * **texto**
+        negrito_pat = re.compile(r'\*\*(.*?)\*\*')  # **texto**
+        italico_pat = re.compile(r'\*(.*?)\*')  # *texto*
+        comando_pat = re.compile(r'\$&(\w+)&\$')  # $&comando&$
 
-        # Função para aplicar o estilo negrito ou itálico no widget Text
-        def aplicar_filtro(match, tag):
+        # Função para aplicar estilos (negrito ou itálico) no Text widget
+        def aplicar_estilo(match, tag):
             self.chat_log.insert(tk.END, match.group(1), tag)
 
-        # Inicialmente, insere o texto sem formatação
+        # Inicialmente insere o texto sem formatação
         index = 0
 
-        # Verifica o padrão "* **" (tópico com negrito)
+        # Aplica o filtro de tópico em negrito (* **texto**)
         for match in topico_negrito_pat.finditer(texto):
-            self.chat_log.insert(tk.END, texto[index:match.start()])  # Insere texto antes do padrão
-            self.chat_log.insert(tk.END, '=> ', 'italico')  # Seta no lugar do primeiro "*"
-            aplicar_filtro(match, 'negrito')  # Aplica o negrito no texto entre "**"
+            self.chat_log.insert(tk.END, texto[index:match.start()])
+            self.chat_log.insert(tk.END, '=> ', 'italico')  # Substitui o "*"
+            aplicar_estilo(match, 'negrito')
             index = match.end()
 
-        # Aplica o padrão de negrito **texto**
+        # Aplica o filtro de negrito (**texto**)
         for match in negrito_pat.finditer(texto[index:]):
             self.chat_log.insert(tk.END, texto[index:match.start() + index])
-            aplicar_filtro(match, 'negrito')
+            aplicar_estilo(match, 'negrito')
             index = match.end()
 
-        # Aplica o padrão de itálico *texto*
+        # Aplica o filtro de itálico (*texto*)
         for match in italico_pat.finditer(texto[index:]):
             self.chat_log.insert(tk.END, texto[index:match.start() + index])
-            aplicar_filtro(match, 'italico')
+            aplicar_estilo(match, 'italico')
             index = match.end()
 
-        # Verifica se há comandos a serem executados
+        # Verifica e executa comandos ($&comando&$)
         for match in comando_pat.finditer(texto[index:]):
             comando = match.group(1)
-            if comando in comandos_disponiveis:
-                self.chat_log.insert(tk.END, texto[index:match.start() + index])
-                index = match.end()
-                # Executa o comando associado
+            self.chat_log.insert(tk.END, texto[index:match.start() + index])
+            index = match.end()
+
+            # Executa o comando associado
+            if comando in COMANDOS_DISPONIVEIS:
                 if comando == "janela":
                     self.janela()
                 elif comando == "olamundo":
@@ -107,6 +104,7 @@ class Janela:
         if index < len(texto):
             self.chat_log.insert(tk.END, texto[index:])
 
+    # Cria os widgets da interface gráfica
     def create_widgets(self):
         self.chat_log = tk.Text(self.root, state='disabled', width=50, height=20)
         self.scrollbar = tk.Scrollbar(self.root, command=self.chat_log.yview)
@@ -117,12 +115,12 @@ class Janela:
 
         self.entry_box = tk.Entry(self.root, width=50)
         self.entry_box.pack()
-        self.entry_box.bind("<Return>", self.send_message)
+        self.entry_box.bind("<Return>", self.enviar_mensagem)
 
-        self.send_button = tk.Button(self.root, text="Send", command=self.send_message)
+        self.send_button = tk.Button(self.root, text="Enviar", command=self.enviar_mensagem)
         self.send_button.pack()
 
-        self.exit_button = tk.Button(self.root, text="Exit", command=self.root.quit)
+        self.exit_button = tk.Button(self.root, text="Sair", command=self.root.quit)
         self.exit_button.pack()
 
         # Cria um menu dropdown para seleção de personalidades
@@ -130,21 +128,36 @@ class Janela:
         self.personalidade_menu = tk.OptionMenu(self.root, self.personalidade_atual, *personalidades)
         self.personalidade_menu.pack()
 
+    # Método que atualiza a personalidade quando a seleção no menu muda
+    def atualizar_personalidade(self, *args):
+        nova_personalidade = self.personalidade_atual.get()
+        self.personalidade.mudar_personalidade(nova_personalidade)
+
+    # Adiciona mensagens ao chat_log com filtro aplicado
     def append_to_chat_log(self, speaker, message):
         self.chat_log.config(state='normal')
         self.chat_log.insert(tk.END, f"{speaker}: ")
-        self.filtros(message)  # Aplica os filtros de formatação
+        self.aplicar_filtros(message)
         self.chat_log.insert(tk.END, "\n")
         self.chat_log.config(state='disabled')
         self.chat_log.yview(tk.END)
 
-    def send_message(self, event=None):
+    # Método para enviar uma mensagem e receber a resposta da IA
+    def enviar_mensagem(self, event=None):
         message = self.entry_box.get().strip()
         self.entry_box.delete(0, tk.END)
         self.append_to_chat_log("Você", message)
-        response = self.gemini.gerar_texto(message)
-        self.append_to_chat_log("Gemini", response)
 
+        # Gera o texto ajustado pela personalidade e o envia para a IA
+        texto_com_personalidade = self.definir_personalidade(message)
+        print(f"Texto com personalidade: {texto_com_personalidade}")
+        resposta = self.gemini.gerar_texto(texto_com_personalidade)
+
+        # Aplica filtros à resposta e executa comandos se houver
+        self.append_to_chat_log("Gemini", resposta)
+        self.aplicar_filtros(resposta)  # Aqui aplica filtros e executa comandos na resposta
+
+    # Método para executar a aplicação
     def run(self):
         self.root.mainloop()
 
