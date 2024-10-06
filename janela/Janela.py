@@ -4,16 +4,14 @@ from Gemini.gemini_ia import IA
 import sys
 import os
 import keyboard
+import pyttsx3  
 import speech_recognition as sr
-import threading
-from tkinter import messagebox
 
-# Nao sei porque, nem como, mas o GPT diz e funciona emtao PRONTO!!! nao mexa!!!
+# Não sei porque, nem como, mas o GPT diz e funciona então PRONTO!!! não mexa!!!
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from personalidade import Personalidade
 from Voz.voz import on_shift_c_pressed
-
 
 # Definindo comandos disponíveis
 COMANDOS_DISPONIVEIS = ["janela", "olamundo"]
@@ -37,6 +35,9 @@ class Janela:
         # Inicializa a IA Gemini
         self.gemini = IA()
 
+        # Inicializa o mecanismo de texto para fala
+        self.tts_engine = pyttsx3.init()
+
         # Definindo estilos de tags para o Text widget
         self.chat_log.tag_config('negrito', font=('Helvetica', 12, 'bold'))
         self.chat_log.tag_config('italico', font=('Helvetica', 12, 'italic'))
@@ -48,7 +49,7 @@ class Janela:
     def janela(self):
         janela_ia = tk.Toplevel(self.root)
         janela_ia.title("Janela criada pela IA")
-        janela_ia.geometry("300x300")
+        janela_ia.geometry("500x600")
 
     # Método olamundo (comando olamundo)
     def olamundo(self):
@@ -120,27 +121,27 @@ class Janela:
         self.scrollbar = tk.Scrollbar(self.root, command=self.chat_log.yview)
         self.chat_log.config(yscrollcommand=self.scrollbar.set)
 
+        # Ajuste os widgets de chat e scrollbar
         self.chat_log.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         self.entry_box = tk.Entry(self.root, width=50)
-        self.entry_box.pack()
-        self.entry_box.bind("<Return>", self.enviar_mensagem)
+        self.entry_box.pack(fill=tk.X, padx=5, pady=5)  # Ajusta a largura da Entry
 
         self.send_button = tk.Button(self.root, text="Enviar", command=self.enviar_mensagem)
-        self.send_button.pack()
+        self.send_button.pack(fill=tk.X, padx=5, pady=5)  # Ajusta a largura do botão de enviar
 
         self.exit_button = tk.Button(self.root, text="Sair", command=self.root.quit)
-        self.exit_button.pack()
+        self.exit_button.pack(fill=tk.X, padx=5, pady=5)  # Ajusta a largura do botão de sair
 
         # Cria um menu dropdown para seleção de personalidades
         personalidades = ["objetiva", "informativa", "conversacional"]
         self.personalidade_menu = tk.OptionMenu(self.root, self.personalidade_atual, *personalidades)
-        self.personalidade_menu.pack()
+        self.personalidade_menu.pack(fill=tk.X, padx=5, pady=5)  # Ajusta a largura do menu de personalidades
 
         # Botão de voz
         self.voice_button = tk.Button(self.root, text="Voz", command=self.on_voice_button_pressed)
-        self.voice_button.pack()
+        self.voice_button.pack(fill=tk.X, padx=5, pady=5)  # Ajusta a largura do botão de voz
 
         # Adiciona hotkey para Shift+C
         keyboard.add_hotkey('shift+c', self.on_shift_c_pressed)
@@ -159,30 +160,25 @@ class Janela:
             self.entry_box.insert(tk.END, text)
             self.enviar_mensagem()
 
-    def on_voice_button_pressed(self):
-        threading.Thread(target=self.recognize_voice).start()
-        #cria um label para mostrar o texto reconhecido
-        label = tk.Label(self.root, text="Pode falar")
-        label.pack()
-
-    def on_shift_c_pressed(self):
-        threading.Thread(target=self.recognize_voice).start()
-        label = tk.Label(self.root, text="Pode falar")
-        label.pack()
-
     def recognize_voice(self):
         recognizer = sr.Recognizer()
         with sr.Microphone() as source:
+            print("Aguarde um momento... Fale agora.")
             audio = recognizer.listen(source)
             try:
                 text = recognizer.recognize_google(audio, language='pt-BR')
-                self.entry_box.delete(0, tk.END)
-                self.entry_box.insert(tk.END, text)
-                self.enviar_mensagem()
+                print(f"Você disse: {text}")
+                return text
             except sr.UnknownValueError:
-                messagebox.showinfo("Erro", "Não entendi o que você disse.")
+                print("Não foi possível entender o áudio.")
+                return None
             except sr.RequestError as e:
-                messagebox.showinfo("Erro", "Erro ao se comunicar com o Google Speech Recognition: {0}".format(e))
+                print(f"Erro ao solicitar resultados do serviço de reconhecimento de fala; {e}")
+                return None
+    def aplicar_filtros_fala(self, texto):
+        texto_processado = texto.replace("**", "").replace("*", "").replace("$&", "").replace("&$", "")
+        # Aqui você pode adicionar mais regras de formatação se necessário
+        return texto_processado
 
     # Método que atualiza a personalidade quando a seleção no menu muda
     def atualizar_personalidade(self, *args):
@@ -204,16 +200,22 @@ class Janela:
         self.entry_box.delete(0, tk.END)
         self.append_to_chat_log("Você", message)
 
-        # Gera o texto ajustado pela personalidade e o envia para a IA
-        texto_com_personalidade = self.definir_personalidade(message)
-        print(f"Texto com personalidade: {texto_com_personalidade}")
-        resposta = self.gemini.gerar_texto(texto_com_personalidade)
+        if message:
+            texto_com_personalidade = self.definir_personalidade(message)
+            print(f"Texto com personalidade: {texto_com_personalidade}")
+            resposta = self.gemini.gerar_texto(texto_com_personalidade)  # Gera a resposta da IA
 
-        # Aplica filtros à resposta e executa comandos se houver
-        self.append_to_chat_log("Gemini", resposta)
-        self.aplicar_filtros(resposta)  # Aqui aplica filtros e executa comandos na resposta
+            # Aplica filtros à resposta
+            resposta_filtrada = self.aplicar_filtros_fala(resposta)
 
-    # Método para executar a aplicação
+            self.append_to_chat_log("IA", resposta_filtrada)
+
+            # Converte a resposta filtrada em fala
+            self.tts_engine.say(resposta_filtrada)
+            self.tts_engine.runAndWait()
+
+
+    # Inicia a aplicação
     def run(self):
         self.root.mainloop()
 
