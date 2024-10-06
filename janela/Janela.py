@@ -1,17 +1,16 @@
 import tkinter as tk
 import re
-from Gemini.gemini_ia import IA
 import sys
 import os
 import keyboard
 import pyttsx3  
 import speech_recognition as sr
 
+
 # Não sei porque, nem como, mas o GPT diz e funciona então PRONTO!!! não mexa!!!
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 from personalidade import Personalidade
-from Voz.voz import on_shift_c_pressed
+from Gemini.gemini_ia import IA
 
 # Definindo comandos disponíveis
 COMANDOS_DISPONIVEIS = ["janela", "olamundo"]
@@ -175,6 +174,7 @@ class Janela:
             except sr.RequestError as e:
                 print(f"Erro ao solicitar resultados do serviço de reconhecimento de fala; {e}")
                 return None
+            
     def aplicar_filtros_fala(self, texto):
         texto_processado = texto.replace("**", "").replace("*", "").replace("$&", "").replace("&$", "")
         # Aqui você pode adicionar mais regras de formatação se necessário
@@ -213,7 +213,6 @@ class Janela:
             # Converte a resposta filtrada em fala
             self.tts_engine.say(resposta_filtrada)
             self.tts_engine.runAndWait()
-
 
     # Inicia a aplicação
     def run(self):
