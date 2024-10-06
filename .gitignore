@@ -1,0 +1,11 @@
+# Ignorar arquivos gerados pelo Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Ignorar a pasta .vs
+.vs/
