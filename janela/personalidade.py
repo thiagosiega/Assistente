@@ -40,8 +40,6 @@ class Personalidade:
             ),
             "informativa": (
                 f"{informacoes}\n"
-                "Busque o máximo de informações disponíveis.\n"
-                "Respostas devem ser detalhadas.\n"
                 f"Com isso, responda: {texto}"
             ),
             "conversacional": (

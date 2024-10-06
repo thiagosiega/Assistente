@@ -60,6 +60,7 @@ class Janela:
         negrito_pat = re.compile(r'\*\*(.*?)\*\*')  # **texto**
         italico_pat = re.compile(r'\*(.*?)\*')  # *texto*
         comando_pat = re.compile(r'\$&(\w+)&\$')  # $&comando&$
+        topico_pat = re.compile(r'\*(\S.*?)')  # *texto
 
         # Função para aplicar estilos (negrito ou itálico) no Text widget
         def aplicar_estilo(match, tag):
@@ -86,6 +87,11 @@ class Janela:
             self.chat_log.insert(tk.END, texto[index:match.start() + index])
             aplicar_estilo(match, 'italico')
             index = match.end()
+
+        # Aplica o filtro de tópico (*texto)
+        for match in topico_pat.finditer(texto[index:]):
+            self.chat_log.insert(tk.END, texto[index:match.start() + index])
+            self.chat_log.insert(tk.END, '=> ', 'italico')  # Substitui o "*"
 
         # Verifica e executa comandos ($&comando&$)
         for match in comando_pat.finditer(texto[index:]):
