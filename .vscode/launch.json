@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "type": "debugpy",
+            "request": "launch",
+            "name": "Launch Program",
+            "program": "${workspaceFolder}/${input:programPath}"
+        }
+    ],
+    "inputs": [
+        {
+            "type": "pickString",
+            "id": "programPath",
+            "description": "Select the program to launch",
+            "options": [
+                "Comandos/bloco_de_notas.py",
+                "Comandos/calculadora.py",
+                "Comandos/navegador.py",
+                "Comandos/VSCode.py",
+                "Gemini/gemini_ia.py",
+                "janela/Janela.py",
+                "janela/personalidade.py",
+                "main.py"
+            ]
+        }
+    ]
+}
