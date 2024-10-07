@@ -1,7 +1,7 @@
 import json
 
 # Classe que define a personalidade do chatbot
-COMANDOS_DISPONIVEIS = ["janela", "olamundo"]
+COMANDOS_DISPONIVEIS = ["navegador", "VSCode", "calculadora", "bloco_de_notas"]
 
 class Personalidade:
     def __init__(self, personalidade_atual):
