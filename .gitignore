@@ -9,3 +9,6 @@ build/
 
 # Ignorar a pasta .vs
 .vs/
+
+# Ignorar o arquivo txt
+Key.txt
