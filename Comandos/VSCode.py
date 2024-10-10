@@ -1,3 +1,2 @@
 import os
-#abre o vs code
-os.system("code")
+os.system("code")  # Pressupõe que o comando "code" está no PATH do sistema

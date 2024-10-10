@@ -5,7 +5,6 @@ import google.generativeai as genai
 class IA:
     def __init__(self):
         self.model = "gemini-1.5-flash"
-        self.prompt = "O que você deseja saber?"
 
     def chave_key(self):
         FILE = 'Key.txt'

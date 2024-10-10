@@ -7,9 +7,10 @@ def requisitos():
     # Executa o comando para instalar todas as bibliotecas e versões do arquivo
     subprocess.run(["pip", "install", "-r", arquivo_requisitos])
 
+    #limpa o cmd
+    subprocess.run("cls", shell=True)
+
 
 if __name__ == "__main__":
     requisitos()
-    from janela.Janela import Janela
-    app = Janela()
-    app.run()
+    subprocess.run(["python", "Asistente/main.pyw"])

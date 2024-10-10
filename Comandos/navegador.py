@@ -1,7 +1,2 @@
 import webbrowser
-
-# URL que você deseja abrir
-url = "https://www.youtube.com"
-
-# Abre a URL no navegador padrão
-webbrowser.open(url)
+webbrowser.open("https://www.google.com")  # Abre o Google como exemplo
